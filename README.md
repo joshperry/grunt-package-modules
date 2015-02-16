@@ -2,6 +2,17 @@
 
 > Packages node_modules dependencies at build time for addition to a distribution package.
 
+Checking `node_modules` in to source control is a lame solution to locking dependencies for a certain commit.
+[npm shrinkwrap](https://docs.npmjs.com/cli/shrinkwrap) is great for locking dependencies to specific commits but doesn't directly help with distribution packaging.
+
+The `node_modules` folder that is used for building your project is not viable for dist packaging because it will contain dev dependencies (like this grunt plugin) and can also contain host-specific binary node modules.
+
+This task takes care creating a fresh `node_modules` for including in a distribution tarball by effectively copying the `package.json` into a temp directory, and then executing `npm install --production --ignore-scripts --prefix tempdir/` to install all production deps into `tmpdir/node_modules`.
+
+This directory can then be the source of another plugin, like copy or compress, to package the fresh `node_modules` into its delicious-looking retail packaging.
+
+This is a great module to use with the concurrent plugin so that the node modules will download while other parts of your packaging flow are executing (sassing, lessing, uglifying, compiling, and other transformation plugins verbified).
+
 ## Getting Started
 This plugin requires Grunt `~0.4.5`
 
@@ -17,67 +28,69 @@ Once the plugin has been installed, it may be enabled inside your Gruntfile with
 grunt.loadNpmTasks('grunt-package-modules');
 ```
 
-## The "package_modules" task
+## The "packageModules" task
 
 ### Overview
 In your project's Gruntfile, add a section named `package_modules` to the data object passed into `grunt.initConfig()`.
 
+The `src` is the `package.json` that describes the dependencies that should be packaged up.
+The `dest` is the destination directory where the fresh `node_modules` directory should be placed, this is usually a temp directory.
+
 ```js
 grunt.initConfig({
-  package_modules: {
-    options: {
-      // Task-specific options go here.
-    },
-    your_target: {
-      // Target-specific file lists and/or options go here.
+  packageModules: {
+    dist: {
+      src: 'package.json',
+      dest: '.tmp/module_packaging'
     },
   },
 });
 ```
 
-### Options
+### Examples
 
-#### options.separator
-Type: `String`
-Default value: `',  '`
-
-A string value that is used to do something with whatever.
-
-#### options.punctuation
-Type: `String`
-Default value: `'.'`
-
-A string value that is used to do something else with whatever else.
-
-### Usage Examples
-
-#### Default Options
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
+Here is an example that uses the copy and compress plugins to send the packaged modules to a dist tarball
 
 ```js
 grunt.initConfig({
-  package_modules: {
-    options: {},
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
+  packageModules: {
+    dist: {
+      src: 'package.json',
+      dest: '.tmp/module_packaging'
     },
   },
-});
-```
-
-#### Custom Options
-In this example, custom options are used to do something else with whatever else. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result in this case would be `Testing: 1 2 3 !!!`
-
-```js
-grunt.initConfig({
-  package_modules: {
-    options: {
-      separator: ': ',
-      punctuation: ' !!!',
+  copy: {
+    dist: {
+  	  files: [{
+		// Copy project files to dist dir
+        expand: true,
+        dest: 'dist',
+        src: [
+          'package.json',
+          'lib/**/*'
+        ]
+      }, {
+	    // Copy bundled modules to dist dir
+	    expand: true,
+	    cwd: '.tmp/module_packaging',
+	    dest: 'dist',
+	    src: [ 'node_modules/**/*' ]
+	  }]
     },
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
+  },
+  // tarball all the files in the dist dir into proj-dist.tar.gz
+  compress: {
+    dist: {
+      options: {
+	    archive: 'dist/proj-dist.tar.gz'
+	  },
+	  files: [{
+	    expand: true,
+		dot: true,
+		cwd: 'dist',
+        src: '**/*'
+      }]
+    }
   },
 });
 ```
@@ -86,4 +99,9 @@ grunt.initConfig({
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 ## Release History
-_(Nothing yet)_
+**v0.1.0**
+Initial Release
+
+## To Do
+- [ ] Tests
+- [ ] Possibly add support for npm shrinkwraping
