@@ -49,14 +49,14 @@ grunt.initConfig({
 
 ### Examples
 
-Here is an example that uses the copy and compress plugins to send the packaged modules to a dist tarball
+Here is an example that uses the copy and compress plugins to send the packaged modules to a dist tarball:
 
 ```js
 grunt.initConfig({
   packageModules: {
     dist: {
       src: 'package.json',
-      dest: '.tmp/module_packaging'
+      dest: 'dist'
     },
   },
   copy: {
@@ -66,16 +66,9 @@ grunt.initConfig({
         expand: true,
         dest: 'dist',
         src: [
-          'package.json',
           'lib/**/*'
         ]
-      }, {
-	    // Copy bundled modules to dist dir
-	    expand: true,
-	    cwd: '.tmp/module_packaging',
-	    dest: 'dist',
-	    src: [ 'node_modules/**/*' ]
-	  }]
+      }]
     },
   },
   // tarball all the files in the dist dir into proj-dist.tar.gz
