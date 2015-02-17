@@ -15,8 +15,6 @@ module.exports = function(grunt) {
 
   grunt.registerMultiTask('packageModules', 'Packages node_modules dependencies at build time for addition to a distribution package.', function() {
 
-    var done = this.async();
-
     // Iterate over all specified file groups.
     this.files.forEach(function(f) {
 
@@ -28,32 +26,40 @@ module.exports = function(grunt) {
         if(grunt.file.exists(f.src[0])) {
           grunt.file.copy(f.src[0], path.join(f.dest, f.src[0]));
         } else {
-          grunt.util.error('The package.json file specified does not exist at ' + f.src[0]);
+          grunt.fail.fatal('The package.json file specified does not exist at ' + f.src[0]);
+          return false;
         }
       } else {
-        grunt.util.error('One source package.json should be specified. There were ' + f.src.length + ' source files specified.');
+        grunt.fail.fatal('One source package.json should be specified. There were ' + f.src.length + ' source files specified.');
+        return false;
       }
 
       // Pull the npm dependencies into the bundle directory
+      npm.on('log', function(msg) {
+        grunt.verbose.writeln(msg);
+      });
+
+      var done = this.async();
+
       npm.load({
         production: true,
         "ignore-scripts": true,
         prefix: f.dest
       }, function(err) {
         if(err) {
-          grunt.util.error(err);
+          grunt.fail.fatal(err);
         }
 
-        npm.install('', function(err) {
+        npm.commands.install([], function(err) {
           if(err) {
-            grunt.util.error(err);
+            grunt.fail.fatal(err);
           }
           
           done();
         });
       });
 
-    });
+    }.bind(this));
 
   });
 

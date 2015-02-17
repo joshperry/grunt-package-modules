@@ -7,7 +7,7 @@ Checking `node_modules` in to source control is a lame solution to locking depen
 
 The `node_modules` folder that is used for building your project is not viable for dist packaging because it will contain dev dependencies (like this grunt plugin) and can also contain host-specific binary node modules.
 
-This task takes care creating a fresh `node_modules` for including in a distribution tarball by effectively copying the `package.json` into a temp directory, and then executing `npm install --production --ignore-scripts --prefix tempdir/` to install all production deps into `tmpdir/node_modules`.
+This task takes care of creating a fresh `node_modules` for including in a distribution tarball by effectively copying the `package.json` into a temp directory, and then executing `npm install --production --ignore-scripts --prefix tempdir/` to install all production deps into `tmpdir/node_modules`.
 
 This directory can then be the source of another plugin, like copy or compress, to package the fresh `node_modules` into its delicious-looking retail packaging.
 
