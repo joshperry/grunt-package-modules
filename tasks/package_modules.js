@@ -43,7 +43,7 @@ module.exports = function(grunt) {
 
       npm.load({
         production: true,
-        "ignore-scripts": f.ignoreScripts === undefined ? true : f.ignoreScripts,
+        "ignore-scripts": !!f.ignoreScripts,
         prefix: f.dest
       }, function(err) {
         if(err) {
