@@ -1,7 +1,7 @@
 {
   "name": "grunt-package-modules",
   "description": "Packages node_modules dependencies at build time for addition to a distribution package.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "homepage": "https://github.com/joshperry/grunt-package-modules",
   "author": {
     "name": "Joshua Perry",
